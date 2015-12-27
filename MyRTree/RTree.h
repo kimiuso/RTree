@@ -1,6 +1,6 @@
 #pragma once
 #include <vector>
-using namespace std;
+using namespace std;//ку╥ф3
 
 struct Rect;
 struct Node;
