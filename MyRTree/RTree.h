@@ -1,5 +1,6 @@
 #pragma once
 #include <vector>
+#include <queue>
 using namespace std;//ку╥ф3
 
 struct Rect;
@@ -21,6 +22,8 @@ public:
 	Rect AddRect(Rect, Rect);
 	long AreaOfRect(Rect);
 	void UpdateMBR(Node*, Rect);
+	Branch GetMBR(Node*);
+	void PrintRTree();
 
 private:
 	Node* NewNode();
