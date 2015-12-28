@@ -9,7 +9,7 @@ void test1()
 	Rect r = { 0,0,1,1 };
 	rtree.Insert(r);
 	rtree.PrintRTree();
-	for (int i = 1; i < 100; i++)
+	for (int i = 1; i < 10; i++)
 	{
 		r = { i,i,i + 1,i + 1 };
 		rtree.Insert(r);
@@ -17,6 +17,41 @@ void test1()
 		printf_s("\n");
 	}
 
+}
+
+void test2()
+{
+	vector<int> vInt;
+	vInt.push_back(1);
+	vInt.push_back(2);
+	vInt.push_back(3);
+	vInt.push_back(4);
+	vInt.push_back(5);
+	int n = 6;
+	vInt.push_back(n);
+	n = 7;
+	vInt.push_back(n);
+	vector<int>::iterator it = vInt.begin();
+	for (int i = 0; it + i != vInt.end(); i++)
+	{
+		printf("vInt[%d]=%d,", i, *(it + i));
+	}
+	vInt.erase(it+3);
+	for (int i = 0; it + i != vInt.end(); i++)
+	{
+		printf("vInt[%d]=%d,", i, *(it + i));
+	}
+
+}
+
+void test3()
+{
+	int i[2];
+	int i2[2];
+	i[0] = 0;
+	i[1] = 1;
+	*i2 = *i;
+	printf_s("%d", i[1]);
 }
 
 void testvector()
@@ -76,7 +111,7 @@ int main()
 {
 	int test=0;
 	//testvector();
-	test1();
+	//test3();
 	scanf_s("%d", &test);
 	return 0;
 }

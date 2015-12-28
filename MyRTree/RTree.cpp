@@ -69,6 +69,35 @@ void RTree::Insert(Node* p, Branch b)
 	{
 		vector<Branch> tempB(p->branchs);
 		tempB.push_back(b);
+		//找出相距相对较远的两个矩形，作为种子
+		vector<Branch>::iterator it=tempB.begin();
+		int top=0;
+		int right=0;
+		int bottom=0;
+		int left=0;
+		int topPoint[2];
+		int rightPoint[2];
+		int bottomPoint[2];
+		int leftPoint[2];
+		topPoint[0] = (*it).rect.x0 + (*it).rect.x1;
+		topPoint[1] = (*it).rect.y0 + (*it).rect.y1;
+		rightPoint[0] = topPoint[0];
+		rightPoint[1] = topPoint[1];
+		bottomPoint[0] = topPoint[0];
+		bottomPoint[1] = topPoint[1];
+		leftPoint[0] = topPoint[0];
+		leftPoint[1] = topPoint[1];		
+
+		for (int i = 1; it + i != tempB.end(); i++)
+		{
+			int center[2];
+			center[0] = (*(it + i)).rect.x0 + (*(it + i)).rect.x1;
+			center[1] = (*(it + i)).rect.y0 + (*(it + i)).rect.y1;
+			
+		}
+
+
+
 		Node* newChildNode = NewNode();
 		p->branchs.assign(tempB.begin(), tempB.begin() + minBranchs + 1);
 		p->count = minBranchs + 1;
