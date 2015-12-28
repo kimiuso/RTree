@@ -28,6 +28,9 @@ void RTree::Insert(Rect rect)
 		p = p->branchs[pos].nextNode;		
 	}
 	//这时，p是指向叶节点的指针
+	Branch b = { rect,NULL };
+	Insert(p, b);
+	/*
 	if (p->count < maxBranchs)
 	{
 		Branch b = { rect,NULL };
@@ -42,6 +45,23 @@ void RTree::Insert(Rect rect)
 	}
 	else
 	{//分裂
+
+	}*/
+}
+
+void RTree::Insert(Node* p, Branch b)
+{
+	if (p->count < maxBranchs)
+	{
+		p->branchs.push_back(b);
+		p->count++;
+		if (p->parent != NULL)
+		{
+			UpdateMBR(p, b.rect);
+		}
+	}
+	else
+	{
 
 	}
 }

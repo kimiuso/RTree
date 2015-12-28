@@ -17,6 +17,7 @@ public:
 public:
 	RTree(int);
 	void Insert(Rect);
+	void Insert(Node*, Branch);
 	Rect AddRect(Rect, Rect);
 	long AreaOfRect(Rect);
 	void UpdateMBR(Node*, Rect);
