@@ -24,6 +24,9 @@ public:
 	void UpdateMBR(Node*, Rect);
 	Branch GetMBR(Node*);
 	void PrintRTree();
+	vector<Rect> Search(Rect);
+	vector<Rect> Search(Node*, Rect);
+	bool Match(Rect, Rect);
 
 private:
 	Node* NewNode();

@@ -8,15 +8,22 @@ void test1()
 	RTree rtree(3);
 	Rect r = { 0,0,1,1 };
 	rtree.Insert(r);
-	rtree.PrintRTree();
-	for (int i = 1; i < 10; i++)
+	for (int i = 1; i < 6; i++)
 	{
 		r = { i,i,i + 1,i + 1 };
 		rtree.Insert(r);
 		rtree.PrintRTree();
 		printf_s("\n");
 	}
-
+	r = { 1,0,2,1 };
+	vector<Rect> result = rtree.Search(r);
+	printf_s("ÕÒµ½%d¸ö", result.size());
+	for (int i = 0; i < result.size(); i++)
+	{
+		printf_s("rect:%d,%d,%d,%d.", result.at(i).x0, result.at(i).y0,
+			result.at(i).x1, result.at(i).y1);
+	}
+	
 }
 
 void test2()
@@ -105,13 +112,31 @@ void testvector()
 	//printf_s("%d", *i);
 }
 
+void testrand()
+{
+	srand((unsigned)time(NULL));
+	unsigned a = 0;
+	unsigned b = 100000;
+	unsigned c;
+	for (int i = 0; i < 10;i++)
+	{ 
+		for (int i = 0; i < 10; i++)
+		{
+			c = (rand() % (b - a + 1)) + a;
+			printf_s("%d,", c);
+		}
+		printf_s("\n");
+	}
+}
+
 
 
 int main()
 {
 	int test=0;
 	//testvector();
-	//test3();
+	test1();
+	//testrand();
 	scanf_s("%d", &test);
 	return 0;
 }

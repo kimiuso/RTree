@@ -30,23 +30,6 @@ void RTree::Insert(Rect rect)
 	//这时，p是指向叶节点的指针
 	Branch b = { rect,NULL };
 	Insert(p, b);
-	/*
-	if (p->count < maxBranchs)
-	{
-		Branch b = { rect,NULL };
-		p->branchs.push_back(b);
-		p->count++;
-		//更新最小界限矩形
-		if (p->parent != NULL)
-		{
-			UpdateMBR(p, rect);
-		}
-		
-	}
-	else
-	{//分裂
-
-	}*/
 }
 
 void RTree::Insert(Node* p, Branch b)
@@ -67,8 +50,10 @@ void RTree::Insert(Node* p, Branch b)
 	}
 	else
 	{
+		//节点分裂
 		vector<Branch> tempB(p->branchs);
 		tempB.push_back(b);
+		if (b.nextNode != NULL) { b.nextNode->parent = p; }
 		//找出相距相对较远的两个矩形，作为种子
 		vector<Branch>::iterator it=tempB.begin();
 		int top=0;
@@ -79,6 +64,8 @@ void RTree::Insert(Node* p, Branch b)
 		int rightPoint[2];
 		int bottomPoint[2];
 		int leftPoint[2];
+		int seed1 = 0;
+		int seed2 = 1;
 		topPoint[0] = (*it).rect.x0 + (*it).rect.x1;
 		topPoint[1] = (*it).rect.y0 + (*it).rect.y1;
 		rightPoint[0] = topPoint[0];
@@ -93,46 +80,77 @@ void RTree::Insert(Node* p, Branch b)
 			int center[2];
 			center[0] = (*(it + i)).rect.x0 + (*(it + i)).rect.x1;
 			center[1] = (*(it + i)).rect.y0 + (*(it + i)).rect.y1;
+			if (center[0] < leftPoint[0]) { left = i; leftPoint[0] = center[0]; leftPoint[1] = center[1]; }
+			if (center[0] > rightPoint[0]) { right = i; rightPoint[0] = center[0]; rightPoint[1] = center[1]; }
+			if (center[1] < bottomPoint[1]) { bottom = i; bottomPoint[0] = center[0]; bottomPoint[1] = center[1]; }
+			if (center[1] > topPoint[1]) { top = i; topPoint[0] = center[0]; topPoint[1] = center[1]; }
+		}
+		if ((rightPoint[0] - leftPoint[0]) > (topPoint[1] - bottomPoint[1])) { seed1 = left; seed2 = right; }
+		else { seed1 = bottom; seed2 = top; }
+		//已经找到了种子
+
+		////从种子生成新的节点
+        
+		p->branchs.clear();
+		p->branchs.push_back(*(it+seed1));
+		p->count = 1;
+		Node* newChildNode = NewNode();
+		newChildNode->branchs.push_back(*(it + seed2));
+		newChildNode->count = 1;
+		for (int i = 0; it + i != tempB.end(); i++)
+		{
+			if (i == seed1 || i == seed2) { continue; }
+			if (p->count > minBranchs) 
+			{
+				newChildNode->branchs.push_back(*(it + i));
+				newChildNode->count++;
+			}
+			else if (newChildNode->count > minBranchs)
+			{
+				p->branchs.push_back(*(it + i));
+				p->count++;
+			}
+			else
+			{
+				Rect r = AddRect((*(it + i)).rect, GetMBR(p).rect);
+				long dif = AreaOfRect(r) - AreaOfRect(GetMBR(p).rect);
+				r = AddRect((*(it + i)).rect, GetMBR(newChildNode).rect);
+				long dif2 = AreaOfRect(r) - AreaOfRect(GetMBR(newChildNode).rect);
+				if (dif > dif2)
+				{
+					newChildNode->branchs.push_back(*(it + i));
+					newChildNode->count++;
+				}
+				else
+				{
+					p->branchs.push_back(*(it + i));
+					p->count++;
+				}
+			}
 			
 		}
 
-
-
-		Node* newChildNode = NewNode();
-		p->branchs.assign(tempB.begin(), tempB.begin() + minBranchs + 1);
-		p->count = minBranchs + 1;
-
-		newChildNode->branchs.assign(tempB.begin() + minBranchs + 1, tempB.end());
-		newChildNode->count = maxBranchs - minBranchs;
 		if (newChildNode->branchs.at(0).nextNode != NULL)
-		{
+		{//如果新节点不是叶节点
 			for (int i = 0; i<newChildNode->branchs.size(); i++)
-			{
+			{//建立从子节点到新节点的指针
 				newChildNode->branchs.at(i).nextNode->parent = newChildNode;
 				newChildNode->branchs.at(i).nextNode->pos = i;
+			}
+			for (int i = 0; i<p->branchs.size(); i++)
+			{//更新从子节点到旧节点的指针
+				p->branchs.at(i).nextNode->pos = i;
 			}
 		}
 		
 		if (p->parent == NULL)
-		{
+		{//如果根节点分裂，则需再生成一个新的根节点，再插入分裂后节点对应的分支
 			root = NewNode();
-			/*
-			Node* childNode1 = NewNode();
-			Node* childNode2 = NewNode();
-			//简单分裂
-			childNode1->branchs.assign(tempB.begin(), tempB.begin()+minBranchs+1);
-			childNode1->count = minBranchs + 1;
-			childNode2->branchs.assign(tempB.begin() + minBranchs + 1, tempB.end());			
-			childNode2->branchs.push_back(tempB.back());
-			childNode2->count = maxBranchs - minBranchs;
-			Insert(root, GetMBR(childNode1));
-			Insert(root, GetMBR(childNode2));
-			*/
 			Insert(root, GetMBR(p));
 			Insert(root, GetMBR(newChildNode));
 		}
 		else
-		{
+		{//刷新父节点中旧节点对应的分支，再插入新节点对应的分支
 			p->parent->branchs[p->pos] = GetMBR(p);
 			Insert(p->parent, GetMBR(newChildNode));
 		}
@@ -225,5 +243,59 @@ void RTree::PrintRTree()
 		printf_s("pos=%d,",p->pos);
 		printf_s("\n");
 	}
+}
+
+vector<Rect> RTree::Search(Rect r)
+{
+	if (root->branchs.size() == 0) { return vector<Rect>();}
+	return Search(root, r);
+	
+}
+
+vector<Rect> RTree::Search(Node *p, Rect r)
+{
+	vector<Rect> result;
+	for (int i = 0; i < p->branchs.size(); i++) 
+	{
+		if (Match(r, p->branchs.at(i).rect))
+		{
+			/*printf_s("Match rect:%d,%d,%d,%d.\n", p->branchs.at(i).rect.x0, p->branchs.at(i).rect.y0,
+				p->branchs.at(i).rect.x1, p->branchs.at(i).rect.y1);*/
+			if (p->branchs.at(i).nextNode != NULL)
+			{//如果不是叶节点，则继续搜索
+				vector<Rect> subResult = Search(p->branchs.at(i).nextNode, r);
+				if (subResult.size() != 0)
+				{
+					for (int i = 0; i < subResult.size(); i++)
+					{
+						result.push_back(subResult.at(i));
+					}
+				}
+			}
+			else
+			{//叶节点，就是要找的矩形
+				result.push_back(p->branchs.at(i).rect);
+			}
+		}
+	}
+	return result;
+}
+
+bool RTree::Match(Rect r1, Rect r2)
+{
+	printf_s("Match rect:%d,%d,%d,%d.  ", r2.x0, r2.y0,
+		r2.x1, r2.y1);
+	if (r1.x0 < r2.x0)
+	{//r1在左边
+		if (r1.x1 <= r2.x0) { return false; }
+		if (r1.y0 >= r2.y1|| r1.y1 <= r2.y0) { return false; }
+	}
+	else
+	{//r2在左边或者两个矩形的左边共线
+		if (r2.x1 <= r1.x0) { return false; }
+		if (r2.y0 >= r1.y1 || r2.y1 <= r1.y0) { return false; }
+	}
+	printf_s("true\n");
+	return true;
 }
 
